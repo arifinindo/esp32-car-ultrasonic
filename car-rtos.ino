@@ -110,8 +110,8 @@ QueueHandle_t  q = NULL;
    digitalWrite(LeftMotorBackward, LOW);
    digitalWrite(RightMotorForward, LOW);
 
-   int r = -255;
-   int l = 255;
+   int r = -200;
+   int l = 200;
 
    ledcWrite(rightMotorPWMSpeedChannel, abs(r));
    ledcWrite(leftMotorPWMSpeedChannel, abs(l));  
@@ -141,8 +141,8 @@ QueueHandle_t  q = NULL;
    digitalWrite(LeftMotorForward, LOW);
    digitalWrite(RightMotorBackward, LOW);
 
-   int r = 255;
-   int l = -255;
+   int r = 200;
+   int l = -200;
 
    ledcWrite(rightMotorPWMSpeedChannel, abs(r));
    ledcWrite(leftMotorPWMSpeedChannel, abs(l));  
