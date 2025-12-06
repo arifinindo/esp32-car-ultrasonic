@@ -7,7 +7,7 @@
  #include <Arduino.h>
  #include <ESP32Servo.h>        //Servo motor library. This is standard library
  #include <NewPing.h>        //Ultrasonic sensor function library. You must install this library
- 
+ //#include <pwmWrite.h>
  //our L298N control pins
  const int LeftMotorForward = 17;
  const int LeftMotorBackward = 16;
@@ -18,7 +18,7 @@
  
  //sensor pins
  #define trig_pin 14 //analog input 1
- #define echo_pin 21 //analog input 2
+ #define echo_pin 27 //analog input 2
  
  #define maximum_distance 200
  boolean goesForward = false;
@@ -42,7 +42,7 @@ int distanceLeft = 0;
 QueueHandle_t  q = NULL;
  
  int readPing(){
-   delay(70);
+  vTaskDelay(pdMS_TO_TICKS(70)); // Delay
    int cm = sonar.ping_cm();
    if (cm==0){
      cm=250;
@@ -110,8 +110,8 @@ QueueHandle_t  q = NULL;
    digitalWrite(LeftMotorBackward, LOW);
    digitalWrite(RightMotorForward, LOW);
 
-   int r = -200;
-   int l = 200;
+   int r = -250;
+   int l = 250;
 
    ledcWrite(rightMotorPWMSpeedChannel, abs(r));
    ledcWrite(leftMotorPWMSpeedChannel, abs(l));  
@@ -141,8 +141,8 @@ QueueHandle_t  q = NULL;
    digitalWrite(LeftMotorForward, LOW);
    digitalWrite(RightMotorBackward, LOW);
 
-   int r = 200;
-   int l = -200;
+   int r = 250;
+   int l = -250;
 
    ledcWrite(rightMotorPWMSpeedChannel, abs(r));
    ledcWrite(leftMotorPWMSpeedChannel, abs(l));  
@@ -193,7 +193,7 @@ QueueHandle_t  q = NULL;
     servo_motor2.write(180);
     vTaskDelay(pdMS_TO_TICKS(200)); // Delay
 
-    vTaskDelay(pdMS_TO_TICKS(10000)); // Delay
+    vTaskDelay(pdMS_TO_TICKS(5000)); // Delay
   }
 }
 void TaskUltrasonic(void * parameter) {
@@ -207,6 +207,15 @@ void TaskUltrasonic(void * parameter) {
       moveStop();
       xQueueSend(q, (void *)&distances, (TickType_t )0);
       vTaskDelay(pdMS_TO_TICKS(3000)); // Delay
+      servo_motor1.write(20);
+      vTaskDelay(pdMS_TO_TICKS(200)); // Delay
+      servo_motor1.write(50);
+      vTaskDelay(pdMS_TO_TICKS(200)); // Delay
+
+      servo_motor2.write(120);
+      vTaskDelay(pdMS_TO_TICKS(200)); // Delay
+      servo_motor2.write(180);
+      vTaskDelay(pdMS_TO_TICKS(500)); // Delay
     }else{
       moveForward();
     }
@@ -231,24 +240,24 @@ void TaskMotorControl(void * parameter) {
     moveStop();
     vTaskDelay(pdMS_TO_TICKS(300)); // Delay
 
-    servo_motor.write(0);
+    servo_motor.write(180);
     vTaskDelay(pdMS_TO_TICKS(300)); // Delay
     distanceRight = readPing();
     vTaskDelay(pdMS_TO_TICKS(300)); // Delay
-    servo_motor.write(90);
+    servo_motor.write(0);
 
     //distanceRight = lookRight();
-    vTaskDelay(pdMS_TO_TICKS(300)); // Delay
+    //vTaskDelay(pdMS_TO_TICKS(300)); // Delay
 
-    servo_motor.write(180);
+    //servo_motor.write(180);
     vTaskDelay(pdMS_TO_TICKS(300)); // Delay
     distanceLeft = readPing();
     vTaskDelay(pdMS_TO_TICKS(300)); // Delay
     servo_motor.write(90);
     //distanceLeft = lookLeft();
-    //vTaskDelay(pdMS_TO_TICKS(300)); // Delay
+    vTaskDelay(pdMS_TO_TICKS(300)); // Delay
 
-    if (distanceRight >= distanceLeft){
+    if (distanceRight <= distanceLeft){
       turnRight();
       moveStop();
     }
@@ -266,8 +275,8 @@ void TaskMotorControl(void * parameter) {
    pinMode(LeftMotorBackward, OUTPUT);
    pinMode(RightMotorBackward, OUTPUT);
    
-   servo_motor.attach(33); //our servo pin
-   servo_motor1.attach(25); //our servo pin
+   servo_motor.attach(21); //our servo pin
+   servo_motor1.attach(33); //our servo pin
    servo_motor2.attach(26); //our servo pin
 
    //Set up PWM for speed
@@ -276,7 +285,7 @@ void TaskMotorControl(void * parameter) {
   ledcAttachPin(enableRightMotor, rightMotorPWMSpeedChannel);
   ledcAttachPin(enableLeftMotor, leftMotorPWMSpeedChannel); 
   q = xQueueCreate(20, sizeof(int));
-  xTaskCreate(TaskMotorCam, "TaskMotorCam", 2048, NULL, 1, NULL);
+  //xTaskCreate(TaskMotorCam, "TaskMotorCam", 2048, NULL, 1, NULL);
   xTaskCreate(TaskUltrasonic, "UltrasonicSensorTask", 2048, NULL, 1, NULL);
   xTaskCreate(TaskMotorControl, "MotorControlTask", 2048, NULL, 1, NULL);
 
